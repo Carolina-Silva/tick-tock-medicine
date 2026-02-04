@@ -16,7 +16,12 @@ interface Medication {
   photo_uri: string | null;
 }
 
-export default function HomeScreen({ refreshKey }: { refreshKey: number }) {
+interface HomeScreenProps {
+  refreshKey: number;
+  onSelectMedication: (medication: any) => void;
+}
+
+export default function HomeScreen({ refreshKey, onSelectMedication }: HomeScreenProps) {
   const [medications, setMedications] = useState<Medication[]>([]);
 
   const loadMedications = () => {
@@ -31,7 +36,7 @@ export default function HomeScreen({ refreshKey }: { refreshKey: number }) {
     loadMedications();
   }, [refreshKey]);
 
-  return (
+return (
     <View style={styles.container}>
       <Text style={styles.subtitle}>Seus Medicamentos</Text>
 
@@ -42,7 +47,10 @@ export default function HomeScreen({ refreshKey }: { refreshKey: number }) {
           data={medications}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <View style={styles.card}>
+            <TouchableOpacity 
+              style={styles.card} 
+              onPress={() => onSelectMedication(item)}
+            >
               <View style={{ flex: 1 }}>
                 {item.photo_uri && (
                   <Image
@@ -56,17 +64,18 @@ export default function HomeScreen({ refreshKey }: { refreshKey: number }) {
                   A cada {item.interval_hours} horas
                 </Text>
               </View>
-
-              <TouchableOpacity
+              
+              <TouchableOpacity 
                 style={styles.deleteBtn}
-                onPress={() => {
+                onPress={(e) => {
+                  e.stopPropagation(); // Evita abrir a tela de detalhes ao deletar
                   db.runSync('DELETE FROM medications WHERE id = ?', [item.id]);
                   loadMedications();
                 }}
               >
                 <Text style={{ color: 'white' }}>X</Text>
               </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           )}
         />
       )}

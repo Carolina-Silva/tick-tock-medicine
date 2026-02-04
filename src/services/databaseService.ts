@@ -2,6 +2,17 @@ import * as SQLite from 'expo-sqlite';
 
 const db = SQLite.openDatabaseSync('remedios.db');
 
+export const getDosagesByMedication = (medicationId: number) => {
+  return db.getAllSync(
+    'SELECT * FROM dosages WHERE medication_id = ? ORDER BY scheduled_time ASC',
+    [medicationId]
+  );
+};
+
+export const markDoseAsTaken = (doseId: number) => {
+  db.runSync('UPDATE dosages SET status = "taken" WHERE id = ?', [doseId]);
+};
+
 export const setupDatabase = () => {
   db.execSync(`
     PRAGMA journal_mode = WAL;
