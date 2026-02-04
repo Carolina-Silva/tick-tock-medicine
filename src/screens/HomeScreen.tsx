@@ -1,18 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
 import db from '../services/databaseService';
 
 interface Medication {
   id: number;
   name: string;
   interval_hours: number;
+  photo_uri: string | null;
 }
 
 export default function HomeScreen({ refreshKey }: { refreshKey: number }) {
   const [medications, setMedications] = useState<Medication[]>([]);
 
   const loadMedications = () => {
-    const results = db.getAllSync('SELECT * FROM medications') as Medication[];
+    const results = db.getAllSync(
+      'SELECT id, name, interval_hours, photo_uri FROM medications'
+    ) as Medication[];
+
     setMedications(results);
   };
 
@@ -23,6 +34,7 @@ export default function HomeScreen({ refreshKey }: { refreshKey: number }) {
   return (
     <View style={styles.container}>
       <Text style={styles.subtitle}>Seus Medicamentos</Text>
+
       {medications.length === 0 ? (
         <Text style={styles.empty}>Nenhum remédio cadastrado.</Text>
       ) : (
@@ -31,11 +43,21 @@ export default function HomeScreen({ refreshKey }: { refreshKey: number }) {
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <View style={styles.card}>
-              <View>
+              <View style={{ flex: 1 }}>
+                {item.photo_uri && (
+                  <Image
+                    source={{ uri: item.photo_uri }}
+                    style={styles.image}
+                  />
+                )}
+
                 <Text style={styles.medName}>{item.name}</Text>
-                <Text style={styles.medDetails}>A cada {item.interval_hours} horas</Text>
+                <Text style={styles.medDetails}>
+                  A cada {item.interval_hours} horas
+                </Text>
               </View>
-              <TouchableOpacity 
+
+              <TouchableOpacity
                 style={styles.deleteBtn}
                 onPress={() => {
                   db.runSync('DELETE FROM medications WHERE id = ?', [item.id]);
@@ -93,5 +115,11 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
-  }
+  },
+  image: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
 });
