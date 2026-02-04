@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import { View, FlatList, StyleSheet, Image } from 'react-native';
+import { Card, Text, IconButton } from 'react-native-paper';
 import db from '../services/databaseService';
 
 interface Medication {
@@ -36,10 +30,8 @@ export default function HomeScreen({ refreshKey, onSelectMedication }: HomeScree
     loadMedications();
   }, [refreshKey]);
 
-return (
+  return (
     <View style={styles.container}>
-      <Text style={styles.subtitle}>Seus Medicamentos</Text>
-
       {medications.length === 0 ? (
         <Text style={styles.empty}>Nenhum remédio cadastrado.</Text>
       ) : (
@@ -47,35 +39,28 @@ return (
           data={medications}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={styles.card} 
-              onPress={() => onSelectMedication(item)}
-            >
-              <View style={{ flex: 1 }}>
+            <Card style={styles.card} onPress={() => onSelectMedication(item)}>
+              <Card.Content style={styles.cardContent}>
                 {item.photo_uri && (
-                  <Image
-                    source={{ uri: item.photo_uri }}
-                    style={styles.image}
-                  />
+                  <Image source={{ uri: item.photo_uri }} style={styles.image} />
                 )}
-
-                <Text style={styles.medName}>{item.name}</Text>
-                <Text style={styles.medDetails}>
-                  A cada {item.interval_hours} horas
-                </Text>
-              </View>
-              
-              <TouchableOpacity 
-                style={styles.deleteBtn}
-                onPress={(e) => {
-                  e.stopPropagation(); // Evita abrir a tela de detalhes ao deletar
-                  db.runSync('DELETE FROM medications WHERE id = ?', [item.id]);
-                  loadMedications();
-                }}
-              >
-                <Text style={{ color: 'white' }}>X</Text>
-              </TouchableOpacity>
-            </TouchableOpacity>
+                <View style={styles.detailsContainer}>
+                  <Text style={styles.medName}>{item.name}</Text>
+                  <Text style={styles.medDetails}>
+                    A cada {item.interval_hours} horas
+                  </Text>
+                </View>
+                <IconButton
+                  icon="delete"
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    db.runSync('DELETE FROM medications WHERE id = ?', [item.id]);
+                    loadMedications();
+                  }}
+                  style={styles.deleteButton}
+                />
+              </Card.Content>
+            </Card>
           )}
         />
       )}
@@ -85,29 +70,30 @@ return (
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    padding: 10,
     flex: 1,
-  },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
   },
   empty: {
     textAlign: 'center',
-    color: '#888',
     marginTop: 20,
+    fontSize: 16,
   },
   card: {
-    backgroundColor: '#f9f9f9',
-    padding: 15,
-    borderRadius: 10,
     marginBottom: 10,
+  },
+  cardContent: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    borderLeftWidth: 4,
-    borderLeftColor: '#2196F3',
+    padding: 10,
+  },
+  image: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  detailsContainer: {
+    flex: 1,
   },
   medName: {
     fontSize: 16,
@@ -117,18 +103,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
-  deleteBtn: {
-    backgroundColor: '#ff5252',
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  image: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    marginBottom: 8,
+  deleteButton: {
+    marginLeft: 'auto', // Pushes the button to the right
   },
 });

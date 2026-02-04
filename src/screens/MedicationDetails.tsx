@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, FlatList, StyleSheet } from 'react-native';
+import { Card, List, Button, Text, Icon } from 'react-native-paper';
 import { getDosagesByMedication, markDoseAsTaken } from '../services/databaseService';
 
 export default function MedicationDetails({ medication, onBack }: { medication: any, onBack: () => void }) {
@@ -16,39 +17,37 @@ export default function MedicationDetails({ medication, onBack }: { medication: 
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-        <Text style={styles.backBtnText}>← Voltar</Text>
-      </TouchableOpacity>
-
-      <View style={styles.header}>
-        {medication.photo_uri && (
-          <Image source={{ uri: medication.photo_uri }} style={styles.medImage} />
-        )}
-        <Text style={styles.title}>{medication.name}</Text>
-      </View>
+      <Card style={styles.headerCard}>
+        {medication.photo_uri && <Card.Cover source={{ uri: medication.photo_uri }} />}
+        <Card.Title title={medication.name} titleStyle={styles.title} />
+      </Card>
 
       <FlatList
         data={dosages}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={[styles.doseCard, item.status === 'taken' && styles.doseTaken]}>
-            <Text style={styles.doseText}>
-              {new Date(item.scheduled_time).toLocaleString('pt-BR')}
-            </Text>
-            {item.status === 'pending' ? (
-              <TouchableOpacity 
-                style={styles.takeBtn} 
-                onPress={() => {
-                  markDoseAsTaken(item.id);
-                  loadDosages();
-                }}
-              >
-                <Text style={styles.takeBtnText}>Marcar como Tomado</Text>
-              </TouchableOpacity>
-            ) : (
-              <Text style={styles.takenText}>✔ Tomado</Text>
-            )}
-          </View>
+          <List.Item
+            title={`Tomar em: ${new Date(item.scheduled_time).toLocaleString('pt-BR')}`}
+            style={[styles.doseCard, item.status === 'taken' && styles.doseTaken]}
+            right={() =>
+              item.status === 'pending' ? (
+                <Button
+                  mode="contained"
+                  onPress={() => {
+                    markDoseAsTaken(item.id);
+                    loadDosages();
+                  }}
+                >
+                  Tomar
+                </Button>
+              ) : (
+                <View style={styles.takenContainer}>
+                   <Icon source="check-circle" size={24} color="green"/>
+                  <Text style={styles.takenText}>Tomado</Text>
+                </View>
+              )
+            }
+          />
         )}
       />
     </View>
@@ -56,24 +55,31 @@ export default function MedicationDetails({ medication, onBack }: { medication: 
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  backBtn: { marginBottom: 20 },
-  backBtnText: { color: '#2196F3', fontSize: 16, fontWeight: 'bold' },
-  header: { alignItems: 'center', marginBottom: 20 },
-  medImage: { width: 120, height: 120, borderRadius: 60, marginBottom: 10 },
-  title: { fontSize: 24, fontWeight: 'bold' },
-  doseCard: { 
-    padding: 15, 
-    backgroundColor: '#f1f1f1', 
-    borderRadius: 8, 
-    marginBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
+  container: { flex: 1, padding: 10 },
+  headerCard: {
+    marginBottom: 20,
   },
-  doseTaken: { backgroundColor: '#e8f5e9', opacity: 0.7 },
-  doseText: { fontSize: 14 },
-  takeBtn: { backgroundColor: '#4CAF50', padding: 8, borderRadius: 5 },
-  takeBtnText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
-  takenText: { color: '#4CAF50', fontWeight: 'bold' }
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  doseCard: {
+    backgroundColor: '#f1f1f1',
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  doseTaken: {
+    backgroundColor: '#e8f5e9',
+  },
+  takenContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10
+  },
+  takenText: {
+    marginLeft: 8,
+    color: 'green',
+    fontWeight: 'bold',
+  }
 });

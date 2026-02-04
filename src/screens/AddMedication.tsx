@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Alert, Image, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, Alert, Image } from 'react-native';
+import { TextInput, Button, Card, Text } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import db from '../services/databaseService';
@@ -36,7 +37,6 @@ export default function AddMedication({ onSave }: { onSave: () => void }) {
         const fileName = `${Date.now()}.jpg`;
         finalPhotoUri = `${FileSystem.documentDirectory}${fileName}`;
 
-        // Verifica se a imagem temporária ainda existe antes de copiar
         const info = await FileSystem.getInfoAsync(image);
         if (info.exists) {
           await FileSystem.copyAsync({
@@ -90,34 +90,40 @@ export default function AddMedication({ onSave }: { onSave: () => void }) {
 
   return (
     <View style={styles.form}>
-      <TouchableOpacity style={styles.imagePlaceholder} onPress={pickImage}>
+      <Card style={styles.imagePicker} onPress={pickImage}>
         {image ? (
-          <Image source={{ uri: image }} style={styles.image} />
+          <Card.Cover source={{ uri: image }} />
         ) : (
-          <Text>Toque para tirar foto do remédio</Text>
+          <View style={styles.imagePlaceholder}>
+            <Text>Toque para tirar foto do remédio</Text>
+          </View>
         )}
-      </TouchableOpacity>
+      </Card>
 
-      <TextInput placeholder="Nome do Remédio" value={name} onChangeText={setName} style={styles.input} />
-      <TextInput placeholder="Intervalo (horas)" value={interval} onChangeText={setInterval} keyboardType="numeric" style={styles.input} />
-      <TextInput placeholder="Duração (dias)" value={days} onChangeText={setDays} keyboardType="numeric" style={styles.input} />
+      <TextInput label="Nome do Remédio" value={name} onChangeText={setName} style={styles.input} mode="outlined" />
+      <TextInput label="Intervalo (horas)" value={interval} onChangeText={setInterval} keyboardType="numeric" style={styles.input} mode="outlined" />
+      <TextInput label="Duração (dias)" value={days} onChangeText={setDays} keyboardType="numeric" style={styles.input} mode="outlined" />
 
-      <Button title="Salvar Tratamento" onPress={saveMedication} />
+      <Button mode="contained" onPress={saveMedication} style={styles.button}>
+        Salvar Tratamento
+      </Button>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   form: { padding: 20 },
-  input: { borderWidth: 1, borderColor: '#ccc', padding: 10, marginBottom: 10, borderRadius: 5 },
+  input: { marginBottom: 10 },
+  imagePicker: {
+    marginBottom: 15,
+  },
   imagePlaceholder: {
     height: 150,
-    backgroundColor: '#eee',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
-    borderRadius: 10,
-    overflow: 'hidden'
+    backgroundColor: '#f0f0f0'
   },
-  image: { width: '100%', height: '100%' }
+  button: {
+    marginTop: 10,
+  }
 });

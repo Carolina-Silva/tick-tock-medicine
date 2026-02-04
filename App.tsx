@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, StyleSheet } from 'react-native';
 import { registerForPushNotificationsAsync } from './src/services/notificationService';
-import * as Notifications from 'expo-notifications';
 import { setupDatabase } from './src/services/databaseService';
 import AddMedication from './src/screens/AddMedication';
 import HomeScreen from './src/screens/HomeScreen';
 import MedicationDetails from './src/screens/MedicationDetails';
+import { Appbar, MD3LightTheme as DefaultTheme, PaperProvider } from 'react-native-paper';
+
+const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: '#2196F3', // Original blue color of the app
+  },
+};
 
 type ViewState = 'home' | 'add' | 'details';
 
@@ -32,54 +40,48 @@ export default function App() {
     setView('home');
   };
 
+  const isDetailsView = view === 'details';
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>ContaCerta</Text>
-        {view !== 'details' && (
-          <TouchableOpacity 
-            style={styles.navBtn} 
-            onPress={() => setView(view === 'home' ? 'add' : 'home')}
-          >
-            <Text style={styles.navBtnText}>{view === 'home' ? '+ Novo' : 'Voltar'}</Text>
-          </TouchableOpacity>
+    <PaperProvider theme={theme}>
+      <SafeAreaView style={styles.container}>
+        <Appbar.Header>
+          {isDetailsView ? (
+            <Appbar.BackAction onPress={handleBack} />
+          ) : null}
+          <Appbar.Content title="TICK TOCK medicine" />
+          {view === 'home' ? (
+            <Appbar.Action icon="plus" onPress={() => setView('add')} />
+          ) : view === 'add' ? (
+            <Appbar.BackAction onPress={() => setView('home')} />
+          ) : null}
+        </Appbar.Header>
+
+        {view === 'home' && (
+          <HomeScreen 
+            refreshKey={refreshKey} 
+            onSelectMedication={handleSelectMedication} 
+          />
         )}
-      </View>
 
-      {view === 'home' && (
-        <HomeScreen 
-          refreshKey={refreshKey} 
-          onSelectMedication={handleSelectMedication} 
-        />
-      )}
+        {view === 'add' && (
+          <AddMedication onSave={() => {
+            setRefreshKey(prev => prev + 1);
+            setView('home');
+          }} />
+        )}
 
-      {view === 'add' && (
-        <AddMedication onSave={() => {
-          setRefreshKey(prev => prev + 1);
-          setView('home');
-        }} />
-      )}
-
-      {view === 'details' && selectedMedication && (
-        <MedicationDetails 
-          medication={selectedMedication} 
-          onBack={handleBack} 
-        />
-      )}
-    </SafeAreaView>
+        {view === 'details' && selectedMedication && (
+          <MedicationDetails 
+            medication={selectedMedication} 
+            onBack={handleBack} 
+          />
+        )}
+      </SafeAreaView>
+    </PaperProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', paddingTop: 50 },
-  header: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: 20,
-    marginBottom: 10 
-  },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#2196F3' },
-  navBtn: { backgroundColor: '#2196F3', padding: 8, borderRadius: 5 },
-  navBtnText: { color: '#fff', fontWeight: 'bold' }
+  container: { flex: 1, backgroundColor: '#fff' },
 });
