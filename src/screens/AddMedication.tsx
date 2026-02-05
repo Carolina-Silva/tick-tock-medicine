@@ -71,7 +71,9 @@ export default function AddMedication({ onSave }: { onSave: () => void }) {
             content: {
               title: "Hora do Remédio",
               body: `Tomar: ${name}`,
+              data: { medicationId: medicationId }
             },
+            identifier: `${medicationId}-${i}`,
             trigger: {
               type: Notifications.SchedulableTriggerInputTypes.DATE,
               date: doseTime,

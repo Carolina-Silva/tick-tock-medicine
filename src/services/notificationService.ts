@@ -37,3 +37,9 @@ export async function registerForPushNotificationsAsync() {
 
   return true;
 }
+
+export async function cancelMedicationNotifications(medicationId: number, totalDoses: number) {
+  for (let i = 0; i < totalDoses; i++) {
+    await Notifications.cancelScheduledNotificationAsync(`${medicationId}-${i}`);
+  }
+}

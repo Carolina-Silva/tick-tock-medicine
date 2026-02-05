@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { View, FlatList, StyleSheet, Image } from 'react-native';
 import { Card, Text, IconButton } from 'react-native-paper';
 import db from '../services/databaseService';
+import * as Notifications from 'expo-notifications';
 
 interface Medication {
   id: number;
   name: string;
   interval_hours: number;
+  duration_days: number;
   photo_uri: string | null;
 }
 
@@ -20,7 +22,7 @@ export default function HomeScreen({ refreshKey, onSelectMedication }: HomeScree
 
   const loadMedications = () => {
     const results = db.getAllSync(
-      'SELECT id, name, interval_hours, photo_uri FROM medications'
+      'SELECT * FROM medications'
     ) as Medication[];
 
     setMedications(results);
@@ -52,8 +54,15 @@ export default function HomeScreen({ refreshKey, onSelectMedication }: HomeScree
                 </View>
                 <IconButton
                   icon="delete"
-                  onPress={(e) => {
+                  onPress={async (e) => {
                     e.stopPropagation();
+
+                    const totalDoses = Math.floor((item.duration_days * 24) / item.interval_hours);
+
+                    for (let i = 0; i < totalDoses; i++) {
+                      await Notifications.cancelScheduledNotificationAsync(`${item.id}-${i}`);
+                    }
+
                     db.runSync('DELETE FROM medications WHERE id = ?', [item.id]);
                     loadMedications();
                   }}
@@ -104,6 +113,6 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   deleteButton: {
-    marginLeft: 'auto', // Pushes the button to the right
+    marginLeft: 'auto',
   },
 });
